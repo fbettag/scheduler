@@ -49,7 +49,9 @@ func (scheduler *Scheduler) RunAt(time time.Time, function task.Function, params
 
 	task.NextRun = time
 
-	scheduler.registerTask(task)
+	if err := scheduler.registerTask(task); err != nil {
+		return "", err
+	}
 	return task.Hash(), nil
 }
 
@@ -208,7 +210,8 @@ func (scheduler *Scheduler) runPending() {
 	}
 }
 
-func (scheduler *Scheduler) registerTask(task *task.Task) {
+func (scheduler *Scheduler) registerTask(task *task.Task) error {
 	_, _ = scheduler.funcRegistry.Add(task.Func)
 	scheduler.tasks[task.Hash()] = task
+	return scheduler.taskStore.Add(task)
 }
